@@ -19,10 +19,8 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import Balance from "./Balance";
 import DailyGameStatus from "./DailyGameStatus";
 import HeaderBalance from "./HeaderBalance";
-import ContentTabs from "./ContentTabs";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -58,10 +56,10 @@ const MobileMenu = () => {
               <p className="self-start">Leaderboard</p>
               <Leaderboard />
             </div>
-            <div className="flex flex-col gap-2 items-center">
+            {/*<div className="flex flex-col gap-2 items-center">
               <p className="self-start">Extras</p>
               <ContentTabs />
-            </div>
+            </div>*/}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Profile</p>
               <ProfilePage />
@@ -70,13 +68,13 @@ const MobileMenu = () => {
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        <p className="text-4xl font-bold">zKube</p>
+        <p className="text-2xl font-bold">zKube</p>
         <div className="flex gap-2">
           <DailyGameStatus />
           <HeaderBalance />
           {!!player && account ? (
             <div className="flex gap-3 items-center">
-              <p className="text-2xl max-w-44 truncate">{player.name}</p>
+              {/*<p className="text-2xl max-w-44 truncate">{player.name}</p>*/}
               {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
             </div>
           ) : (

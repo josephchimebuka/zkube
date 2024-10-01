@@ -6,7 +6,6 @@ import { useMediaQuery } from "react-responsive";
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
 import Connect from "../components/Connect";
-import { ModeType } from "@/dojo/game/types/mode";
 import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
@@ -37,7 +36,7 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
-          <ContentTabs />
+          {/*<ContentTabs />*/}
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (

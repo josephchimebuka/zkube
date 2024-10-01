@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import useCountdown from "@/hooks/useCountdown";
+import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -40,21 +39,19 @@ import { ModeType } from "@/dojo/game/types/mode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { Level } from "@/dojo/game/types/level";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
+import useTournament from "@/hooks/useTournament";
+import useCountdown from "@/hooks/useCountdown";
+import { formatRemainingTime } from "../utils";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
-
-// enum ModeType {
-//   Daily = 'daily',
-//   Normal = 'normal',
-// }
 
 interface TabListProps {
   activeTab: ModeType;
   setActiveTab: React.Dispatch<React.SetStateAction<ModeType>>;
 }
 
-const TabList: React.FC<TabListProps> = ({ activeTab, setActiveTab }) => (
+const TabList = memo<TabListProps>(({ activeTab, setActiveTab }) => (
   <TabsList className="grid w-[80%] mx-auto sm:w-full grid-cols-2">
     <TabsTrigger
       value={ModeType.Daily}
@@ -69,68 +66,65 @@ const TabList: React.FC<TabListProps> = ({ activeTab, setActiveTab }) => (
       Normal
     </TabsTrigger>
   </TabsList>
-);
-
-interface TabContentProps {
-  modeType: ModeType;
-}
-
-const TabContent: React.FC<TabContentProps> = ({ modeType }) => (
-  <>
-    <TabsContent value={ModeType.Daily} hidden={modeType !== ModeType.Daily}>
-      <Content modeType={ModeType.Daily} />
-    </TabsContent>
-    <TabsContent value={ModeType.Normal} hidden={modeType !== ModeType.Normal}>
-      <Content modeType={ModeType.Normal} />
-    </TabsContent>
-  </>
-);
-
-const getNextDailyChallengeTime = () => {
-  const now = new Date();
-  const nextMidnight = new Date(now);
-  nextMidnight.setUTCHours(24, 0, 0, 0);
-  return nextMidnight;
-};
-
-const getNextNormalChallengeTime = () => {
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  return nextMonth;
-};
+));
 
 export const Leaderboard = () => {
-  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
-
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent
+        className="sm:max-w-[700px] w-[95%] rounded-lg p-4"
+        aria-describedby={undefined}
+      >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <Tabs value={activeTab}>
-          <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabContent modeType={activeTab} />
-        </Tabs>
+        <LeaderboardContent />
       </DialogContent>
     </Dialog>
   );
 };
+
+export const LeaderboardContent: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
+
+  const dailyEndTimestamp = useTournament(ModeType.Daily).endTimestamp;
+  const normalEndTimestamp = useTournament(ModeType.Normal).endTimestamp;
+
+  const dailySecondsLeft = useCountdown(new Date(dailyEndTimestamp * 1000));
+  const normalSecondsLeft = useCountdown(new Date(normalEndTimestamp * 1000));
+
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as ModeType)}
+    >
+      <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
+      <TabsContent value={ModeType.Daily}>
+        <Content mode={ModeType.Daily} secondsLeft={dailySecondsLeft} />
+      </TabsContent>
+      <TabsContent value={ModeType.Normal}>
+        <Content mode={ModeType.Normal} secondsLeft={normalSecondsLeft} />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
 interface ContentProps {
-  modeType: ModeType;
+  mode: ModeType;
+  secondsLeft: number;
 }
 
-export const Content: React.FC<ContentProps> = ({ modeType }) => {
+export const Content: React.FC<ContentProps> = ({ mode, secondsLeft }) => {
   const { games } = useGames();
   const [page, setPage] = useState<number>(1);
   const [pageCount, setPageCount] = useState<number>(0);
 
   const filteredGames = useMemo(() => {
-    return games.filter((game) => game.mode.value === modeType);
-  }, [games, modeType]);
+    return games.filter((game) => game.mode.value === mode);
+  }, [games, mode]);
 
   const { sortedGames, totalBuyIn, winningPool } = useMemo(() => {
     const sorted = filteredGames
@@ -164,7 +158,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 
   useEffect(() => {
     setPage(1); // Reset to first page only when mode changes
-  }, [modeType]);
+  }, [mode]);
 
   const { start, end } = useMemo(() => {
     const start = (page - 1) * GAME_PER_PAGE;
@@ -186,20 +180,12 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
-  const countdownDate = useMemo(() => {
-    return modeType === ModeType.Daily
-      ? getNextDailyChallengeTime()
-      : getNextNormalChallengeTime();
-  }, [modeType]);
-
-  const { days, hours, minutes, seconds } = useCountdown(countdownDate);
-
   return (
-    <>
-      <div className="w-full border-b border-white flex justify-between items-center my-4">
+    <div className="flex flex-col gap-4">
+      <div className="w-full border-b border-white flex justify-between items-center my-4 p-2">
         <h2 className="text-lg font-semibold">Next Challenge In:</h2>
         <p className="text-lg font-bold">
-          {`${days}d ${hours}h ${minutes}m ${seconds}s`}
+          {formatRemainingTime(mode, secondsLeft)}
         </p>
       </div>
       <Table className="text-sm sm:text-base sm:w-full ">
@@ -290,36 +276,38 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-    </>
+    </div>
   );
 };
 
-export const Row = ({
-  rank,
-  game,
-}: {
-  rank: number;
-  game: Game & { potentialWinnings: number };
-}) => {
-  const { player } = usePlayer({ playerId: game.player_id });
+export const Row = memo(
+  ({
+    rank,
+    game,
+  }: {
+    rank: number;
+    game: Game & { potentialWinnings: number };
+  }) => {
+    const { player } = usePlayer({ playerId: game.player_id });
 
-  console.log(player);
-
-  return (
-    <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
-      <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
-      <TableCell className="text-left sm:max-w-36 truncate">
-        {player?.name || "-"}
-      </TableCell>
-      <TableCell className="text-center">
-        {player?.points ? Level.fromPoints(player?.points).value : ""}
-      </TableCell>
-      <TableCell className="text-center font-bold">{game.score}</TableCell>
-      <TableCell className="text-center font-bold">{game.combo}</TableCell>
-      <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
-      <TableCell className="text-center font-bold">
-        {game.potentialWinnings.toFixed(2)}
-      </TableCell>
-    </TableRow>
-  );
-};
+    return (
+      <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
+        <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
+        <TableCell className="text-left sm:max-w-36 truncate">
+          {player?.name || "-"}
+        </TableCell>
+        <TableCell className="text-center">
+          {player?.points ? Level.fromPoints(player?.points).value : ""}
+        </TableCell>
+        <TableCell className="text-center font-bold">{game.score}</TableCell>
+        <TableCell className="text-center font-bold">{game.combo}</TableCell>
+        <TableCell className="text-center font-bold">
+          {game.max_combo}
+        </TableCell>
+        <TableCell className="text-center font-bold">
+          {game.potentialWinnings.toFixed(2)}
+        </TableCell>
+      </TableRow>
+    );
+  },
+);

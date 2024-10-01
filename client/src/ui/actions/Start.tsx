@@ -7,19 +7,21 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
 import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useCredits } from "@/hooks/useCredits";
+import TournamentTimer from "../components/TournamentTimer";
+import { useSettings } from "@/hooks/useSettings";
+import { ethers } from "ethers";
 
 interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
   potentialWinnings: string; // New prop for potential winnings
-  remainingTime?: string; // New prop for remaining time (optional for Normal mode)
 }
 
 export const Start: React.FC<StartProps> = ({
   mode,
   handleGameMode,
   potentialWinnings,
-  remainingTime,
 }) => {
   const {
     master,
@@ -31,6 +33,8 @@ export const Start: React.FC<StartProps> = ({
   const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });
+  const { credits } = useCredits({ playerId: account?.address });
+  const { settings } = useSettings();
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -39,6 +43,8 @@ export const Start: React.FC<StartProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = useCallback(async () => {
+    if (!settings) return;
+
     setIsLoading(true);
     try {
       const {
@@ -54,6 +60,10 @@ export const Start: React.FC<StartProps> = ({
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
+        price:
+          mode === ModeType.Daily
+            ? settings.daily_mode_price
+            : settings.normal_mode_price,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -66,7 +76,7 @@ export const Start: React.FC<StartProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [account, mode]);
+  }, [account, mode, settings]);
 
   const disabled = useMemo(() => {
     return (
@@ -74,15 +84,24 @@ export const Start: React.FC<StartProps> = ({
       !master ||
       account === master ||
       !player ||
-      player?.daily_games_available === 0 ||
       (!!game && !game.isOver())
     );
   }, [account, master, player, game]);
 
   const cost = useMemo(() => {
-    if (player && player?.daily_games_available > 0) return "Free";
-    return "0.01 STRK"; //TODO: replace with actual cost
-  }, [player, account]);
+    if (player && credits && credits.get_remaining(Date.now() / 1000) > 0)
+      return "Free";
+    else if (!settings) return "";
+
+    const weiCost =
+      mode === ModeType.Daily
+        ? settings.daily_mode_price
+        : settings.normal_mode_price;
+
+    const ethCost = ethers.utils.formatEther(weiCost);
+
+    return `${ethCost} ETH`;
+  }, [player, credits, settings, mode]);
 
   return (
     <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
@@ -95,11 +114,7 @@ export const Start: React.FC<StartProps> = ({
       <p className="text-lg">
         <strong>Price:</strong> {cost}
       </p>
-      {remainingTime && (
-        <p className="text-lg text-red-500">
-          <strong>Remaining Time:</strong> {remainingTime}
-        </p>
-      )}
+      <TournamentTimer mode={mode} />
       <Button
         disabled={isLoading || disabled}
         isLoading={isLoading}
