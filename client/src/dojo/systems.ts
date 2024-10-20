@@ -7,6 +7,8 @@ import { Account } from "starknet";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+
 export function systems({
   client,
   clientModels,
@@ -37,6 +39,10 @@ export function systems({
     return window.matchMedia("(min-width: 768px)").matches;
   };
 
+  const shouldShowToast = (): boolean => {
+    return isMdOrLarger();
+  };
+
   const isSmallHeight = (): boolean => {
     return window.matchMedia("(max-height: 768px)").matches;
   };
@@ -46,8 +52,11 @@ export function systems({
       label: "View",
       onClick: () =>
         window.open(
-          `https://worlds.dev/networks/slot/worlds/zkube/txs/${transaction_hash}`,
-          //`https://sepolia.voyager.online/tx/${transaction_hash}`,
+          VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
+            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
+            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
+            ? `https://sepolia.starkscan.co/tx//${transaction_hash}`
+            : `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`,
         ),
     };
   };
@@ -66,8 +75,8 @@ export function systems({
   const toastPlacement = getToastPlacement();
 
   const notify = (message: string, transaction: any) => {
-    console.log("transaction", transaction);
     if (transaction.execution_status !== "REVERTED") {
+      if (!shouldShowToast()) return; // Exit if screen is smaller than medium
       toast.success(message, {
         id: TOAST_ID,
         description: shortenHex(transaction.transaction_hash),
@@ -87,18 +96,24 @@ export function systems({
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ) => {
-    toast.loading("Transaction in progress...", {
-      id: TOAST_ID,
-      position: toastPlacement,
-    });
-    try {
-      const { transaction_hash } = await action();
+    if (shouldShowToast()) {
       toast.loading("Transaction in progress...", {
-        description: shortenHex(transaction_hash),
-        action: getToastAction(transaction_hash),
         id: TOAST_ID,
         position: toastPlacement,
       });
+    }
+
+    try {
+      const { transaction_hash } = await action();
+
+      if (shouldShowToast()) {
+        toast.loading("Transaction in progress...", {
+          description: shortenHex(transaction_hash),
+          action: getToastAction(transaction_hash),
+          id: TOAST_ID,
+          position: toastPlacement,
+        });
+      }
 
       const transaction = await account.waitForTransaction(transaction_hash, {
         retryInterval: 100,
@@ -165,6 +180,25 @@ export function systems({
     );
   };
 
+  const claimChest = async ({ account, ...props }: SystemTypes.ChestClaim) => {
+    await handleTransaction(
+      account,
+      () => client.chest.claim({ account, ...props }),
+      "Chest rewards have been claimed.",
+    );
+  };
+
+  const claimTournament = async ({
+    account,
+    ...props
+  }: SystemTypes.TournamentClaim) => {
+    await handleTransaction(
+      account,
+      () => client.tournament.claim({ account, ...props }),
+      "Tournament rewards have been claimed.",
+    );
+  };
+
   return {
     // account
     create,
@@ -174,5 +208,9 @@ export function systems({
     surrender,
     move,
     applyBonus,
+    // chest
+    claimChest,
+    // tournament
+    claimTournament,
   };
 }

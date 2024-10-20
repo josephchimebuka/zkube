@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Separator } from "@/ui/elements/separator";
 import { useNavigate } from "react-router-dom";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -12,7 +12,8 @@ import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
-import ContentTabs from "../components/ContentTabs";
+import CollectiveTreasureChest from "../components/TreasureChest";
+import { Button } from "../elements/button";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -27,6 +28,12 @@ export const Header = () => {
     navigate("", { replace: true });
   }, [navigate]);
 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onClose = () => {
+    setIsOpen(false);
+  };
+
   return isMdOrLarger ? (
     <div>
       <div className="flex justify-center items-center p-4 flex-wrap md:justify-between">
@@ -35,13 +42,17 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard />
+          <Leaderboard buttonType="outline" textSize="sm" />
           {/*<ContentTabs />*/}
+          <Button variant={"outline"} onClick={() => setIsOpen(true)}>
+            Collective Chests
+          </Button>
+          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
             <div className="flex gap-3">
-              <ProfilePage />
+              <ProfilePage wfit />
               <LevelIndicator currentXP={player.points} />
               <DailyGameStatus />
               <HeaderBalance />

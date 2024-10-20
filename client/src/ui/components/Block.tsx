@@ -1,14 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GameState } from "@/enums/gameEnums";
+import { Block } from "@/types/types";
 
 interface BlockProps {
-  block: {
-    id: number;
-    width: number;
-    x: number;
-    y: number;
-  };
+  block: Block;
   gridSize: number;
+  gridHeight?: number;
   isTxProcessing?: boolean;
   transitionDuration?: number;
   state?: GameState;
@@ -22,12 +19,12 @@ interface BlockProps {
   ) => void;
   onTransitionBlockStart?: () => void;
   onTransitionBlockEnd?: () => void;
-  selectBlock?: (block: BlockProps["block"]) => void;
 }
 
-const Block: React.FC<BlockProps> = ({
+const BlockContainer: React.FC<BlockProps> = ({
   block,
   gridSize,
+  gridHeight = 10,
   transitionDuration = 100,
   isTxProcessing = false,
   state,
@@ -35,7 +32,6 @@ const Block: React.FC<BlockProps> = ({
   handleTouchStart = () => {},
   onTransitionBlockStart = () => {},
   onTransitionBlockEnd = () => {},
-  selectBlock = () => {},
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
@@ -65,7 +61,7 @@ const Block: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""}`}
+      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${block.y != gridHeight - 1 ? "z-10" : ""}`}
       ref={ref}
       style={{
         position: "absolute",
@@ -74,7 +70,9 @@ const Block: React.FC<BlockProps> = ({
         width: `${block.width * gridSize}px`,
         height: `${gridSize}px`,
         transition:
-          state === GameState.GRAVITY || state === GameState.GRAVITY2
+          state === GameState.GRAVITY ||
+          state === GameState.GRAVITY2 ||
+          state === GameState.GRAVITY_BONUS
             ? `top ${transitionDuration / 1000}s linear`
             : "none", // Désactivation de la transition autrement
         color: "white",
@@ -82,9 +80,8 @@ const Block: React.FC<BlockProps> = ({
       onMouseDown={(e) => handleMouseDown(e, block)}
       onTouchStart={(e) => handleTouchStart(e, block)}
       onTransitionEnd={handleTransitionEnd}
-      onClick={() => selectBlock(block)}
     ></div>
   );
 };
 
-export default Block;
+export default BlockContainer;
