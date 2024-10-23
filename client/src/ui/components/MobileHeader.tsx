@@ -9,9 +9,7 @@ import {
 } from "../elements/drawer";
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
-import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
-import { ModeToggle } from "./Theme";
 import Connect from "./Connect";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
@@ -19,8 +17,10 @@ import HeaderBalance from "./HeaderBalance";
 import { Button } from "../elements/button";
 import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
+import { Surrender } from "../actions/Surrender";
+import LevelIndicator from "./LevelIndicator";
 
-const MobileMenu = () => {
+const MobileHeader = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
@@ -40,20 +40,22 @@ const MobileMenu = () => {
           <DrawerHeader>
             <DrawerTitle className="text-2xl">zKube</DrawerTitle>
           </DrawerHeader>
-          <div className="flex flex-col gap-5 p-4">
-            <div className="flex flex-col gap-2 items-center">
+          <div className="flex flex-col gap-5 p-4 font-semibold md:font-normal">
+            {/* <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Theme</p> <ModeToggle />
-            </div>
-            <div className="flex flex-col gap-2 items-center">
+            </div> */}
+            {/* <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Sound</p> <MusicPlayer />
-            </div>
+            </div> */}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Account</p>
               <AccountDetails />
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
-              <Leaderboard />
+
+              <Surrender red variant="outline" className="w-full text-sm" />
+              <Leaderboard buttonType="outline" textSize="sm" />
               <Button
                 variant="outline"
                 onClick={() => setIsOpen(true)}
@@ -82,6 +84,7 @@ const MobileMenu = () => {
             <div className="flex gap-3 items-center">
               <HeaderBalance />
               <ProfilePage wfit />
+              <LevelIndicator currentXP={player.points} />
             </div>
           ) : (
             ACCOUNT_CONNECTOR === "controller" && <Connect />
@@ -92,4 +95,4 @@ const MobileMenu = () => {
   );
 };
 
-export default MobileMenu;
+export default MobileHeader;

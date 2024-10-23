@@ -49,10 +49,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
     account?.address || "",
   );
 
-  const handleChestClick = (chest: Chest) => {
-    setSelectedChest(chest);
-  };
-
   const handlePrevious = () => {
     setCurrentChestIndex((prev) => Math.max(0, prev - 1));
   };
@@ -64,15 +60,15 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start"
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
         aria-describedby={undefined}
       >
         <DialogTitle>
           <VisuallyHidden.Root>Collective Treasure Chest</VisuallyHidden.Root>
         </DialogTitle>
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col gap-4 font-semibold md:font-normal">
           {/* Top Section */}
-          <div className="text-center mb-6 flex flex-col relative">
+          <div className="text-center flex flex-col relative">
             <button
               onClick={handlePrevious}
               className="absolute left-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -99,7 +95,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
 
           {/* Middle Section */}
           <div>
-            <div className="relative mb-6">
+            <div className="relative">
               <h3 className="text-lg font-semibold mb-2">
                 Collective Progress
               </h3>
@@ -115,7 +111,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="">
             <h3 className="text-lg font-semibold">Your Impact</h3>
             <div className="text-sm text-center">
               <p>

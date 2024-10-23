@@ -6,6 +6,12 @@ pub struct Player {
     game_id: u32,
     name: felt252,
     points: u32,
+    // Multipliers
+    // Daily streak
+    daily_streak: u8,
+    last_active_day: u32, // Number of days since epoch
+    // Account age
+    account_creation_day: u32,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
@@ -39,6 +45,10 @@ pub struct Game {
     start_time: u64,
     tournament_id: u64,
     // ------------------------
+    score_in_tournament: u32,
+    combo_counter_in_tournament: u8,
+    max_combo_in_tournament: u8,
+    // ------------------------
     pending_chest_prize: u128, // prize to be added to the right chest
 // the right chest is the one that is not complete and has the highest point_target
 // only known after the game is over
@@ -60,6 +70,9 @@ struct Tournament {
     top1_claimed: bool,
     top2_claimed: bool,
     top3_claimed: bool,
+    top1_game_id: u32,
+    top2_game_id: u32,
+    top3_game_id: u32,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
