@@ -3,7 +3,7 @@ import TutorialGrid from "../components/TutorialGrid";
 import { Block } from "@/types/types";
 import { Card } from "../elements/card";
 import GameBonus from "../containers/GameBonus";
-import { transformDataContratIntoBlock } from "@/utils/gridUtils";
+import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import { BonusName } from "@/enums/bonusEnum";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import NextLine from "../components/NextLine";
@@ -256,11 +256,11 @@ const Tutorial = ({
   }, [tutorialStep]);
 
   const memorizedInitialData = useMemo(
-    () => transformDataContratIntoBlock(gridData),
+    () => transformDataContractIntoBlock(gridData),
     [gridData],
   );
   const memorizedNextLineData = useMemo(
-    () => transformDataContratIntoBlock([nextLine]),
+    () => transformDataContractIntoBlock([nextLine]),
     [nextLine],
   );
 
@@ -377,7 +377,7 @@ const Tutorial = ({
             <br />
             <div className="flex justify-center items-center">
               <NextLine
-                nextLineData={transformDataContratIntoBlock([nextLine])}
+                nextLineData={transformDataContractIntoBlock([nextLine])}
                 gridSize={gridSize}
                 gridHeight={1}
                 gridWidth={cols}
