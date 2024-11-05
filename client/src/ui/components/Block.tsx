@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 
@@ -28,35 +28,32 @@ const BlockContainer: React.FC<BlockProps> = ({
   transitionDuration = 100,
   isTxProcessing = false,
   state,
-  handleMouseDown = () => {},
-  handleTouchStart = () => {},
-  onTransitionBlockStart = () => {},
-  onTransitionBlockEnd = () => {},
+  handleMouseDown,
+  handleTouchStart,
+  onTransitionBlockStart,
+  onTransitionBlockEnd,
 }) => {
-  const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (ref.current === null) return;
+    const element = ref.current
+    if (element === null) return;
 
     const onTransitionStart = () => {
-      onTransitionBlockStart();
-      setTransition("Start");
+      if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
     };
 
-    // Ajout de l'événement
-    ref.current.addEventListener("transitionstart", onTransitionStart);
+    element.addEventListener("transitionstart", onTransitionStart);
 
-    // Nettoyage de l'événement à la fin du cycle de vie
     return () => {
-      ref.current?.removeEventListener("transitionstart", onTransitionStart);
+      element?.removeEventListener("transitionstart", onTransitionStart);
     };
-  }, []);
+  }, [onTransitionBlockStart]);
 
   // Gestion de la fin de la transition via l'événement onTransitionEnd
   const handleTransitionEnd = () => {
-    setTransition("End");
-    onTransitionBlockEnd(); // Notifier que la transition est terminée
+    //setTriggerParticles(true);
+    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
 
   return (
@@ -77,8 +74,12 @@ const BlockContainer: React.FC<BlockProps> = ({
             : "none", // Désactivation de la transition autrement
         color: "white",
       }}
-      onMouseDown={(e) => handleMouseDown(e, block)}
-      onTouchStart={(e) => handleTouchStart(e, block)}
+      onMouseDown={(e) => {
+        if (handleMouseDown !== undefined) handleMouseDown(e, block);
+      }}
+      onTouchStart={(e) => {
+        if (handleTouchStart !== undefined) handleTouchStart(e, block);
+      }}
       onTransitionEnd={handleTransitionEnd}
     ></div>
   );

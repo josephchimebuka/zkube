@@ -44,6 +44,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
   const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
+    shouldLog: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +57,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [account]);
+  }, [account, setIsUnmounting, surrender]);
 
   const disabled = useMemo(() => {
     return (
@@ -81,7 +82,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
         </DialogTrigger>
         <DialogContent
           aria-describedby={undefined}
-          className="w-[90%] p-8 flex flex-col gap-4"
+          className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
         >
           <DialogHeader>
             <DialogTitle>Surrender Game?</DialogTitle>
@@ -89,7 +90,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
 
           <div className="flex gap-4">
             <DialogClose asChild className="w-full">
-              <Button>No, Continue Playing</Button>
+              <Button className="flex-1">No, Continue</Button>
             </DialogClose>
             <DialogClose asChild className="w-full">
               <Button
@@ -97,6 +98,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
                 disabled={isLoading}
                 isLoading={isLoading}
                 onClick={handleClick}
+                className="flex-1"
               >
                 Yes, Surrender
               </Button>

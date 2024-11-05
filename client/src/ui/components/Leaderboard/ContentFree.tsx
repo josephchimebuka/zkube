@@ -22,7 +22,14 @@ import {
 import { usePlayer } from "@/hooks/usePlayer";
 import { Level } from "@/dojo/game/types/level";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheckCircle,
+  faClock,
+  faFire,
+  faFlagCheckered,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
 import MaxComboIcon from "../MaxComboIcon";
 
 const MAX_PAGE_COUNT = 5;
@@ -56,7 +63,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-  }, [sortedGames]);
+  }, [GAME_PER_PAGE, sortedGames]);
 
   useEffect(() => {
     setPage(1); // Reset to first page only when mode changes
@@ -66,7 +73,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
     const start = (page - 1) * GAME_PER_PAGE;
     const end = start + GAME_PER_PAGE;
     return { start, end };
-  }, [page]);
+  }, [GAME_PER_PAGE, page]);
 
   const handlePrevious = useCallback(() => {
     if (page === 1) return;
@@ -84,16 +91,18 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
     <div className="flex flex-col h-[420px] justify-between">
       {/* No tournament Select or Timer */}
       <div className="flex-grow overflow-auto">
-        <Table className="text-sm sm:text-base sm:w-full ">
+        <Table className="text-sm sm:text-base sm:w-full font-semibold md:font-normal">
           <TableCaption className={`${disabled && "hidden"}`}>
             Leaderboard is waiting for its best players to make history
           </TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[3%] md:w-[8%] text-center">
+              <TableHead className="w-[3%] md:w-[8%] text-center font-semibold md:font-normal">
                 {isMdOrLarger ? "Rank" : "#"}
               </TableHead>
-              <TableHead className="w-[27%] text-start">Name</TableHead>
+              <TableHead className="w-[27%] text-start font-semibold md:font-normal">
+                Name
+              </TableHead>
               <TableHead className="w-[10%] text-center hidden md:table-cell">
                 lvl
               </TableHead>
@@ -115,6 +124,23 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                     className="text-slate-500"
                   />
                 </div>
+              </TableHead>
+              <TableHead className="w-[10%] text-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FontAwesomeIcon
+                      icon={faFlagCheckered}
+                      className="text-slate-500"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    className="text-base"
+                  >
+                    Game Status
+                  </TooltipContent>
+                </Tooltip>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -177,7 +203,9 @@ export const RowFree: React.FC<RowFreeProps> = ({ rank, game }) => {
         {player?.name || "-"}
       </TableCell>
       <TableCell className="text-center hidden md:table-cell">
-        {player?.points ? Level.fromPoints(player?.points).value : ""}
+        {player?.points !== undefined
+          ? Level.fromPoints(player?.points).value
+          : ""}
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.score_in_tournament}
@@ -187,6 +215,30 @@ export const RowFree: React.FC<RowFreeProps> = ({ rank, game }) => {
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.max_combo_in_tournament}
+      </TableCell>
+      <TableCell className="text-center font-bold">
+        {game.isOver() ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon
+                icon={faCheckCircle}
+                className="text-green-300"
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game is over
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game on going
+            </TooltipContent>
+          </Tooltip>
+        )}
       </TableCell>
     </TableRow>
   );

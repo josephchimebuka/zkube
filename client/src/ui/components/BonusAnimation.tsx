@@ -75,8 +75,8 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   useEffect(() => {
     if (!wonBonus) {
       if (
-        optimisticCombo >= 24 &&
-        prevComboRef.current < 24 &&
+        optimisticCombo >= 64 &&
+        prevComboRef.current < 64 &&
         !unlockedBonuses.Wave
       ) {
         setWonBonus(BonusType.Wave);
@@ -160,7 +160,7 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
             id: "exit",
             scale: isMdOrLarger ? 0.27 : 0.23,
             rotate: 0,
-            top: isMdOrLarger ? 40 : 35,
+            top: isMdOrLarger ? 40 : 31,
             left:
               wonBonus === BonusType.Hammer
                 ? "9%"

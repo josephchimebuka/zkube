@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
@@ -64,6 +70,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [optimisticScore, setOptimisticScore] = useState(score);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
+  const [bonusDescription, setBonusDescription] = useState("");
 
   useEffect(() => {
     // Every time the initial grid changes, we erase the optimistic data
@@ -72,6 +79,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
@@ -80,21 +88,33 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (waveCount === 0) return;
     if (bonus === BonusType.Wave) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Wave);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Wave);
+      setBonusDescription("Select the line you want to destroy");
+    }
   };
 
   const handleBonusTikiClick = () => {
     if (totemCount === 0) return;
     if (bonus === BonusType.Totem) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Totem);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Totem);
+      setBonusDescription("Select the block type you want to destroy");
+    }
   };
 
   const handleBonusHammerClick = () => {
     if (hammerCount === 0) return;
     if (bonus === BonusType.Hammer) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Hammer);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Hammer);
+      setBonusDescription("Select the block you want to destroy");
+    }
   };
 
   const handleBonusWaveTx = useCallback(
@@ -113,7 +133,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusHammerTx = useCallback(
@@ -132,7 +152,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -151,7 +171,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const selectBlock = useCallback(
@@ -166,13 +186,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
   );
 
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
     setBonus(BonusType.None);
+    setBonusDescription("");
   }, [initialGrid]);
 
   const memoizedInitialData = useMemo(() => {
@@ -181,6 +202,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const { endTimestamp } = useTournament(game.mode.value);
@@ -195,7 +218,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`relative p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
+        className={`relative p-3 md:pt-4 bg-secondary ${isTxProcessing && "cursor-wait"} pb-2 md:pb-3`}
       >
         <BonusAnimation
           isMdOrLarger={isMdOrLarger}
@@ -204,7 +227,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           optimisticMaxCombo={optimisticMaxCombo}
         />
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-3 flex justify-between px-1`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -224,6 +247,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isMdOrLarger={isMdOrLarger}
           />
         </div>
+
         <div
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
@@ -244,7 +268,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setIsTxProcessing={setIsTxProcessing}
           />
         </div>
-        <div className="flex justify-center items-center mt-3">
+
+        <div className="relative">
+          <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
+            {bonus !== BonusType.None && (
+              <h1
+                className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? "text-sm" : "text-2xl"} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
+              >
+                {bonusDescription}
+              </h1>
+            )}
+          </div>
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={GRID_SIZE}
@@ -252,16 +286,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
           />
         </div>
-        <div className="absolute text-xs top-2 right-2 rounded-full text-white flex items-center justify-center shadow-lg"></div>
+
         {(game.mode.value === ModeType.Daily ||
           game.mode.value === ModeType.Normal) && (
-          <div className="flex w-full items-center justify-between px-2 mt-2">
+          <div className="flex w-full items-center justify-between px-1 mt-2 md:mt-3 font-semibold md:font-normal">
             <div>
               Ranked {rank}
               <sup>{suffix}</sup>
             </div>
             <div className="flex gap-4">
-              <h2 className="text-sm md:text-base font-semibold">
+              <h2 className="text-GRID_SIZEsm md:text-base font-semibold">
                 Tournament:
               </h2>
               <TournamentTimer

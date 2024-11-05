@@ -5,9 +5,9 @@ import { Button } from "../elements/button";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { TournamentReward } from "./Rewards";
 
-import bronze from "../../../public/assets/trophies/bronze.png";
-import silver from "../../../public/assets/trophies/silver.png";
-import gold from "../../../public/assets/trophies/gold.png";
+import bronze from "/assets/trophies/bronze.png";
+import silver from "/assets/trophies/silver.png";
+import gold from "/assets/trophies/gold.png";
 import { format } from "date-fns";
 import { ModeType } from "@/dojo/game/types/mode";
 import { formatPrize } from "@/utils/wei";
@@ -62,7 +62,7 @@ export const RewardCard: React.FC<{
   };
 
   return (
-    <div className="w-full p-4 relative border rounded-lg text-white text-sm md:text-base">
+    <div className="w-full p-4 relative border rounded-lg text-white text-sm md:text-base font-semibold md:font-normal">
       <div className="w-full">
         <motion.div
           className="flex items-start space-x-4"
@@ -110,7 +110,7 @@ export const RewardCard: React.FC<{
                   Tournament: {tournament && formatTournamentDate(tournament)}
                 </p>
                 <p className="font-semibold">
-                  Your reward: {tournament_reward?.prize}
+                  Rewards: {tournament_reward?.prize}
                 </p>
               </>
             )}
@@ -120,6 +120,7 @@ export const RewardCard: React.FC<{
         <div className="absolute bottom-4 right-4">
           <Button
             onClick={onClaim}
+            className={!isMdOrLarger ? "h-[26px]" : ""}
           >{`Claim ${isMdOrLarger ? "Reward" : ""}`}</Button>
         </div>
       </div>

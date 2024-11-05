@@ -1,5 +1,4 @@
 import { defineComponent, Type as RecsType, World } from "@dojoengine/recs";
-
 export type ContractComponents = Awaited<
   ReturnType<typeof defineContractComponents>
 >;
@@ -15,7 +14,6 @@ export function defineContractComponents(world: World) {
           score: RecsType.Number,
           moves: RecsType.Number,
           next_row: RecsType.Number,
-          next_color: RecsType.Number,
           hammer_bonus: RecsType.Number,
           wave_bonus: RecsType.Number,
           totem_bonus: RecsType.Number,
@@ -25,7 +23,6 @@ export function defineContractComponents(world: World) {
           combo_counter: RecsType.Number,
           max_combo: RecsType.Number,
           blocks: RecsType.BigInt,
-          colors: RecsType.BigInt,
           player_id: RecsType.BigInt,
           seed: RecsType.BigInt,
           mode: RecsType.Number,
@@ -45,7 +42,6 @@ export function defineContractComponents(world: World) {
               "u32",
               "u32",
               "u32",
-              "u32",
               "u8",
               "u8",
               "u8",
@@ -54,7 +50,6 @@ export function defineContractComponents(world: World) {
               "u8",
               "u8",
               "u8",
-              "felt252",
               "felt252",
               "felt252",
               "felt252",
